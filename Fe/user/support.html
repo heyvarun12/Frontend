@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Support Center – HIMS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#2563eb"
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .nav-item:hover {
+    background: #f1f5f9;
+  }
+    .card-hover {
+      transition: all 0.25s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-gray-900">
+
+<!-- ================= SIDEBAR ================= -->
+<aside class="fixed top-0 left-0 w-64 h-full bg-white border-r flex flex-col">
+
+  <!-- LOGO -->
+  <div class="p-6 border-b flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+      <i data-lucide="shield" class="text-white"></i>
+    </div>
+    <div>
+      <p class="font-bold text-lg">HIMS</p>
+      <p class="text-sm text-gray-500">User Portal</p>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="flex-1 p-4 space-y-1">
+    <div class="nav-item" onclick="go('dashboard.html')">
+      <i data-lucide="layout-dashboard"></i>Dashboard
+    </div>
+    <div class="nav-item" onclick="go('policies.html')">
+      <i data-lucide="file-text"></i>My Policies
+    </div>
+    <div class="nav-item" onclick="go('claims.html')">
+      <i data-lucide="clipboard-list"></i>Claims
+    </div>
+    <div class="nav-item" onclick="go('payments.html')">
+      <i data-lucide="credit-card"></i>Payments
+    </div>
+    <div class="nav-item bg-primary/10 text-primary">
+      <i data-lucide="headphones"></i>Support
+    </div>
+    <div class="nav-item" onclick="go('profile.html')">
+      <i data-lucide="user"></i>Profile
+    </div>
+  </nav>
+
+  <!-- LOGOUT -->
+  <div class="p-4 border-t">
+    <button onclick="go('../login.html')"
+      class="w-full flex items-center gap-3 p-3 rounded-xl text-red-600 hover:bg-red-50 font-semibold">
+      <i data-lucide="log-out"></i>Logout
+    </button>
+  </div>
+</aside>
+
+<!-- ================= MAIN ================= -->
+<main class="ml-64 p-8">
+
+  <!-- HEADER -->
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-bold mb-1">Support Center</h1>
+      <p class="text-gray-500">Get help and track your support tickets</p>
+    </div>
+    <button onclick="go('create-ticket.html')"
+  class="flex items-center gap-2 px-5 py-2 bg-primary text-white rounded-xl font-semibold hover:bg-blue-700 transition">
+  <i data-lucide="plus"></i>Create Ticket
+</button>
+
+  </div>
+
+  <!-- STATS -->
+  <div class="grid grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-2xl border p-6 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center">
+        <i data-lucide="message-square" class="text-sky-600"></i>
+      </div>
+      <div>
+        <p class="text-2xl font-bold">1</p>
+        <p class="text-sm text-gray-500">Open Tickets</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border p-6 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+        <i data-lucide="clock" class="text-amber-600"></i>
+      </div>
+      <div>
+        <p class="text-2xl font-bold">24h</p>
+        <p class="text-sm text-gray-500">Avg Response</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border p-6 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
+        <i data-lucide="check-circle" class="text-emerald-600"></i>
+      </div>
+      <div>
+        <p class="text-2xl font-bold">2</p>
+        <p class="text-sm text-gray-500">Resolved</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="relative max-w-md mb-6">
+    <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+    <input placeholder="Search tickets..."
+      class="w-full pl-10 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-primary outline-none">
+  </div>
+
+  <!-- TICKETS -->
+  <div class="space-y-4">
+
+    <!-- TICKET 1 -->
+    <div class="bg-white rounded-2xl border p-6 card-hover">
+      <div class="flex justify-between items-start">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="font-mono text-sm text-gray-500">TKT-2024-001</span>
+            <span class="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700 font-semibold">Open</span>
+            <span class="px-3 py-1 text-xs rounded-full bg-red-100 text-red-700 font-semibold">High</span>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Claim processing delay</h3>
+          <p class="text-gray-500 text-sm">
+            My claim CLM-2024-002 has been pending for more than a week...
+          </p>
+          <div class="text-xs text-gray-500 mt-3">
+            Created: Nov 20, 2024 &nbsp; | &nbsp; Updated: Nov 22, 2024
+          </div>
+        </div>
+
+        <button onclick="openModal()"
+          class="px-4 py-2 rounded-lg border font-semibold hover:bg-slate-50">
+          View Details
+        </button>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ================= MODAL ================= -->
+<div id="modal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+  <div class="bg-white rounded-2xl w-full max-w-lg p-6 relative">
+    <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-black">
+      ✕
+    </button>
+
+    <h3 class="text-xl font-bold mb-4">TKT-2024-001 - Claim processing delay</h3>
+
+    <div class="flex gap-2 mb-4">
+      <span class="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700 font-semibold">Open</span>
+      <span class="px-3 py-1 text-xs rounded-full bg-red-100 text-red-700 font-semibold">High</span>
+    </div>
+
+    <p class="text-gray-500 mb-4">Description</p>
+    <p class="mb-6">
+      My claim CLM-2024-002 has been pending for more than a week...
+    </p>
+
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div>
+        <p class="text-sm text-gray-500">Created</p>
+        <p class="font-semibold">Nov 20, 2024</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500">Last Updated</p>
+        <p class="font-semibold">Nov 22, 2024</p>
+      </div>
+    </div>
+
+    <button class="w-full bg-primary text-white py-3 rounded-xl font-semibold hover:bg-blue-700">
+      Reply to Ticket
+    </button>
+  </div>
+</div>
+
+<script>
+  function go(page) {
+    window.location.href = page;
+  }
+  function openModal() {
+    document.getElementById("modal").classList.remove("hidden");
+    document.getElementById("modal").classList.add("flex");
+  }
+  function closeModal() {
+    document.getElementById("modal").classList.add("hidden");
+    document.getElementById("modal").classList.remove("flex");
+  }
+  lucide.createIcons();
+</script>
+
+</body>
+</html>
