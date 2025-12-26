@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Claims – HIMS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#2563eb"
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* SAME AS DASHBOARD */
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .nav-item:hover {
+    background: #f1f5f9;
+  }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-gray-900">
+
+<!-- ================= SIDEBAR (SAME AS DASHBOARD) ================= -->
+<aside class="fixed top-0 left-0 w-64 h-full bg-white border-r flex flex-col">
+
+  <!-- LOGO -->
+  <div class="p-6 border-b flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+      <i data-lucide="shield" class="text-white"></i>
+    </div>
+    <div>
+      <p class="font-bold text-lg">HIMS</p>
+      <p class="text-sm text-gray-500">User Portal</p>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="flex-1 p-4 space-y-1">
+
+    <div onclick="go('/user/dashboard')" class="nav-item">
+      <i data-lucide="layout-dashboard"></i> Dashboard
+    </div>
+
+    <div onclick="go('/user/policies')" class="nav-item">
+      <i data-lucide="file-text"></i> My Policies
+    </div>
+
+    <!-- ACTIVE -->
+    <div class="nav-item bg-primary/10 text-primary">
+      <i data-lucide="clipboard-list"></i> Claims
+    </div>
+
+    <div onclick="go('/user/payments')" class="nav-item">
+      <i data-lucide="credit-card"></i> Payments
+    </div>
+
+    <div onclick="go('/user/support')" class="nav-item">
+      <i data-lucide="headphones"></i> Support
+    </div>
+
+    <div onclick="go('/user/profile')" class="nav-item">
+      <i data-lucide="user"></i> Profile
+    </div>
+  </nav>
+
+  <!-- LOGOUT -->
+  <div class="p-4 border-t">
+    <button onclick="logout()" class="w-full flex items-center gap-3 p-3 rounded-xl text-red-600 hover:bg-red-50">
+      <i data-lucide="log-out"></i> Logout
+    </button>
+  </div>
+</aside>
+
+<!-- ================= MAIN ================= -->
+<main class="ml-64 p-8">
+
+  <!-- HEADER -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-3xl font-bold mb-1">My Claims</h1>
+      <p class="text-gray-500">Submit and track your insurance claims</p>
+    </div>
+
+    <a th:href="@{/user/submit-claim}"
+       class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-xl hover:bg-blue-700 font-semibold">
+      <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+      Submit New Claim
+    </a>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="flex gap-4 mb-6">
+    <div class="relative w-full max-w-md">
+      <i data-lucide="search"
+         class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+      <input id="search"
+             placeholder="Search claims..."
+             class="w-full pl-10 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-primary outline-none">
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-6 py-4 text-left text-sm text-gray-500">Claim ID</th>
+          <th class="px-6 py-4 text-left text-sm text-gray-500">Policy</th>
+          <th class="px-6 py-4 text-left text-sm text-gray-500">Type</th>
+          <th class="px-6 py-4 text-left text-sm text-gray-500">Amount</th>
+          <th class="px-6 py-4 text-left text-sm text-gray-500">Date</th>
+          <th class="px-6 py-4 text-left text-sm text-gray-500">Status</th>
+          <th class="px-6 py-4 text-right text-sm text-gray-500">Action</th>
+        </tr>
+      </thead>
+      <tbody id="claimsBody"></tbody>
+    </table>
+  </div>
+</main>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+  const claims = [
+    { id:"CLM-001", policy:"Health Plus Premium", type:"Consultation", amount:"$250", date:"Nov 15, 2024", status:"approved" },
+    { id:"CLM-002", policy:"Dental Care Basic", type:"Dental Cleaning", amount:"$120", date:"Nov 22, 2024", status:"pending" },
+    { id:"CLM-003", policy:"Health Plus Premium", type:"Lab Tests", amount:"$180", date:"Nov 20, 2024", status:"rejected" }
+  ];
+
+  function badge(s){
+    return {
+      approved:"bg-green-100 text-green-700",
+      pending:"bg-yellow-100 text-yellow-700",
+      rejected:"bg-red-100 text-red-700"
+    }[s];
+  }
+
+  function render(list){
+    claimsBody.innerHTML = list.map(c=>`
+      <tr class="border-t hover:bg-gray-50">
+        <td class="px-6 py-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <i data-lucide="clipboard-list" class="w-5 h-5 text-primary"></i>
+            </div>
+            <span class="font-mono font-medium">${c.id}</span>
+          </div>
+        </td>
+        <td class="px-6 py-4 font-medium">${c.policy}</td>
+        <td class="px-6 py-4 text-gray-500">${c.type}</td>
+        <td class="px-6 py-4 font-semibold">${c.amount}</td>
+        <td class="px-6 py-4 text-gray-500">${c.date}</td>
+        <td class="px-6 py-4">
+          <span class="px-3 py-1 rounded-full text-xs font-semibold ${badge(c.status)}">
+            ${c.status}
+          </span>
+        </td>
+        <td class="px-6 py-4 text-right">
+          <button class="px-3 py-1 rounded-lg text-primary font-semibold hover:bg-primary/10">
+            View
+          </button>
+        </td>
+      </tr>
+    `).join("");
+    lucide.createIcons();
+  }
+
+  search.oninput = e => {
+    const v = e.target.value.toLowerCase();
+    render(claims.filter(c => c.id.toLowerCase().includes(v)));
+  };
+
+  function go(p){ location.href=p; }
+  function logout(){ location.href='/logout'; }
+
+  render(claims);
+  lucide.createIcons();
+</script>
+
+</body>
+</html>

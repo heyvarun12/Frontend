@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Policy Details</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-bg">
+  <main class="ml-64 p-8">
+    <a href="/admin/policies" class="text-sm text-blue-600">← Back to policies</a>
+    <div class="bg-white rounded-2xl p-8 mt-4">
+      <h1 class="text-2xl font-bold mb-4" th:text="${policy.coverageType}">Policy Name</h1>
+      <p class="text-sm text-muted mb-2">Policy Number: <span th:text="${policy.policyNumber}">PLCY-123</span></p>
+      <p class="text-sm text-muted mb-2">Holder: <span th:text="${policy.user != null ? policy.user.username : '—'}">John Doe</span></p>
+      <p class="text-sm text-muted mb-2">Premium: <span th:text="${policy.premiumAmount != null ? '$' + policy.premiumAmount : '—'}">$0</span></p>
+      <p class="text-sm text-muted mb-2">Coverage: <span th:text="${policy.coverageAmount != null ? '$' + policy.coverageAmount : '—'}">$0</span></p>
+      <p class="text-sm text-muted mb-2">Status: <span th:text="${policy.policyStatus}">Active</span></p>
+      <p class="mt-4 text-sm" th:text="${policy.createdAt}">Created at</p>
+    </div>
+  </main>
+</body>
+</html>

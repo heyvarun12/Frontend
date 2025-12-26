@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Details – Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-50">
+  <main class="p-8 max-w-4xl mx-auto">
+    <h1 class="text-2xl font-bold mb-4">User Details</h1>
+
+    <div class="bg-white p-6 rounded-lg border mb-6">
+      <p><strong>Name:</strong> <span th:text="${user.username}">Name</span></p>
+      <p><strong>Email:</strong> <span th:text="${user.email}">email@example.com</span></p>
+      <p><strong>Role:</strong> <span th:text="${user.role}">USER</span></p>
+      <p><strong>ID:</strong> <span th:text="${user.id}">1</span></p>
+    </div>
+
+    <h2 class="text-lg font-semibold mb-2">Policies</h2>
+    <div th:if="${policies.size() == 0}" class="text-sm text-gray-500 mb-4">No policies found for this user.</div>
+    <ul class="space-y-2">
+      <li th:each="p : ${policies}" class="bg-white p-4 rounded border flex justify-between items-center">
+        <div>
+          <div class="font-medium" th:text="${p.coverageType}">Coverage</div>
+          <div class="text-sm text-gray-500" th:text="${p.policyNumber}">POL-001</div>
+        </div>
+        <a th:href="@{/admin/policies/{id}(id=${p.id})}" class="text-sm text-blue-600">View Policy</a>
+      </li>
+    </ul>
+
+    <div class="mt-6">
+      <a href="/admin/users" class="px-4 py-2 bg-gray-100 rounded">Back to Users</a>
+    </div>
+  </main>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

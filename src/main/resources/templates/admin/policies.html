@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Policies – Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
+
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sidebar: "#0f172a",
+            bg: "#f8fafc",
+            card: "#ffffff",
+            border: "#e5e7eb",
+            muted: "#64748b",
+            success: "#16a34a",
+            warning: "#f59e0b",
+            destructive: "#dc2626"
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .gradient-primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    }
+  </style>
+</head>
+
+<body class="bg-bg">
+
+<!-- SIDEBAR -->
+<aside class="fixed inset-y-0 left-0 w-64 bg-sidebar text-white flex flex-col z-40">
+
+  <!-- Logo -->
+  <div class="p-6 flex items-center gap-3">
+    <div class="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center">
+      <i data-lucide="shield"></i>
+    </div>
+    <div>
+      <h1 class="font-bold leading-tight">HIMS</h1>
+      <p class="text-xs text-white/60">Admin Portal</p>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="px-4 space-y-1 flex-1">
+    
+    <!-- Dashboard -->
+    <button
+      onclick="go('/admin/dashboard')"
+      class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition"
+    >
+      <i data-lucide="layout-dashboard"></i>
+      <span>Dashboard</span>
+    </button>
+
+    <!-- Users -->
+    <button onclick="go('/admin/users')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/10">
+      <i data-lucide="users"></i> Users
+    </button>
+    <button class="w-full flex items-center gap-3 p-3 rounded-xl bg-white/10">
+      <i data-lucide="file-text"></i> Policies
+    </button>
+    <!-- Claims -->
+    <button
+      onclick="go('/admin/claims')"
+      class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition"
+    >
+      <i data-lucide="clipboard-list"></i>
+      <span>Claims</span>
+    </button>
+
+    <!-- Support -->
+    <button
+      onclick="go('/admin/support')"
+      class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition"
+    >
+      <i data-lucide="headphones"></i>
+      <span>Support</span>
+    </button>
+
+    <!-- Analytics -->
+    <button
+      onclick="go('/admin/analytics')"
+      class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition"
+    >
+      <i data-lucide="bar-chart-3"></i>
+      <span>Analytics</span>
+    </button>
+
+    <!-- Settings -->
+    <button
+      onclick="go('/admin/settings')"
+      class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition"
+    >
+      <i data-lucide="settings"></i>
+      <span>Settings</span>
+    </button>
+  </nav>
+
+  <!-- Logout -->
+  <div class="p-4 border-t">
+    <button onclick="logout()"
+      class="w-full flex items-center gap-3 p-3 rounded-xl text-red-600 hover:bg-red-50 font-semibold">
+      <i data-lucide="log-out"></i>Logout
+    </button>
+  </div>
+  </button>
+
+</aside>
+
+<!-- MAIN -->
+<main class="ml-64 p-8">
+
+  <!-- HEADER -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-3xl font-bold">Policies</h1>
+      <p class="text-muted">Manage all insurance policies</p>
+    </div>
+    <div class="flex gap-2">
+      <button class="px-4 py-2 border rounded-xl flex items-center gap-2 hover:bg-slate-50" onclick="location.reload()">
+        <i data-lucide="refresh-cw"></i> Refresh
+      </button>
+      <button onclick="openCreatePolicy()" class="px-4 py-2 bg-blue-600 text-white rounded-xl flex items-center gap-2 hover:bg-blue-700">
+        <i data-lucide="plus"></i> Create Policy
+      </button>
+    </div>
+  </div>
+
+  <!-- Flash messages -->
+  <div th:if="${success}" class="mb-4 px-4 py-3 rounded-xl bg-green-50 text-green-700">[[${success}]]</div>
+  <div th:if="${error}" class="mb-4 px-4 py-3 rounded-xl bg-red-50 text-red-700">[[${error}]]</div>
+
+  <!-- SEARCH -->
+  <div class="relative mb-6">
+    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-muted"></i>
+    <input type="text" placeholder="Search policies..."
+      class="w-full pl-10 pr-4 py-3 rounded-xl border bg-card focus:ring-2 focus:ring-blue-500/20">
+  </div>
+
+  <!-- POLICIES TABLE -->
+  <div class="bg-card rounded-2xl border overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-slate-100">
+        <tr>
+          <th class="px-6 py-4 text-left text-sm text-muted">Policy ID</th>
+          <th class="px-6 py-4 text-left text-sm text-muted">Plan Name</th>
+          <th class="px-6 py-4 text-left text-sm text-muted hidden md:table-cell">Holder</th>
+          <th class="px-6 py-4 text-left text-sm text-muted hidden sm:table-cell">Premium</th>
+          <th class="px-6 py-4 text-left text-sm text-muted hidden lg:table-cell">Coverage</th>
+          <th class="px-6 py-4 text-left text-sm text-muted">Status</th>
+          <th class="px-6 py-4 text-right text-sm text-muted">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y" th:if="${policies != null}">
+        <tr th:each="p : ${policies}" class="hover:bg-slate-50">
+          <td class="px-6 py-4 font-mono text-sm" th:text="${'PLCY-' + p.id}">PLCY-1023</td>
+          <td class="px-6 py-4">
+            <p class="font-medium" th:text="${p.coverageType}">Premium Health Plus</p>
+            <p class="text-sm text-muted md:hidden" th:text="${p.user != null ? p.user.username : '—'}">John Doe</p>
+          </td>
+          <td class="px-6 py-4 hidden md:table-cell" th:text="${p.user != null ? p.user.username : '—'}">John Doe</td>
+          <td class="px-6 py-4 hidden sm:table-cell font-medium" th:text="${p.premiumAmount != null ? '$' + p.premiumAmount : '—'}">$450/mo</td>
+          <td class="px-6 py-4 hidden lg:table-cell" th:text="${p.coverageAmount != null ? '$' + p.coverageAmount : '—'}">$500,000</td>
+          <td class="px-6 py-4">
+            <span th:classappend="${p.policyStatus == 'Active'} ? ' bg-green-100 text-success' : ' bg-amber-100 text-warning'" class="px-3 py-1 rounded-full text-sm" th:text="${p.policyStatus}">Active</span>
+          </td>
+          <td class="px-6 py-4 text-right">
+            <a th:href="@{/admin/policies/{id}(id=${p.id})}" class="p-2 hover:bg-slate-100 rounded-full inline-block">
+              <i data-lucide="eye"></i>
+            </a>
+            <a th:href="@{/admin/policies/{id}/edit(id=${p.id})}" class="p-2 hover:bg-slate-100 rounded-full inline-block">
+              <i data-lucide="edit"></i>
+            </a>
+            <form th:action="@{/admin/policies/delete/{id}(id=${p.id})}" method="post" style="display:inline" onsubmit="return confirm('Delete this policy?');">
+              <button type="submit" class="p-2 hover:bg-red-50 rounded-full text-red-600">
+                <i data-lucide="trash-2"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        <tr th:if="${policies.size() == 0}" class="text-sm text-muted">
+          <td colspan="7" class="px-6 py-6 text-center">No policies found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</main>
+<!-- CREATE POLICY MODAL -->
+<div
+  id="createPolicyModal"
+  class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50"
+>
+  <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl p-6 relative">
+
+    <!-- Close -->
+    <button
+      onclick="closeCreatePolicy()"
+      class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+    >
+      <i data-lucide="x"></i>
+    </button>
+
+    <!-- Header -->
+    <h2 class="text-xl font-semibold mb-6">Create New Policy</h2>
+
+    <!-- Form -->
+    <form th:action="@{/admin/policies}" method="post" class="space-y-4">
+
+      <!-- Policy Name -->
+      <div>
+        <label class="text-sm font-medium">Policy Name *</label>
+        <input
+          name="policyName"
+          type="text"
+          placeholder="Premium Health Plus"
+          required
+          class="mt-1 w-full px-4 py-2 rounded-xl border
+                 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+        />
+      </div>
+
+      <!-- Policy Holder (email to associate user) -->
+      <div>
+        <label class="text-sm font-medium">Policy Holder (email)</label>
+        <input
+          name="holderEmail"
+          type="email"
+          placeholder="john@example.com"
+          class="mt-1 w-full px-4 py-2 rounded-xl border
+                 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+        />
+      </div>
+
+      <!-- Premium & Coverage -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-sm font-medium">Premium ($/month)</label>
+          <input
+            name="premium"
+            type="number"
+            step="0.01"
+            placeholder="450"
+            class="mt-1 w-full px-4 py-2 rounded-xl border
+                   focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <label class="text-sm font-medium">Coverage ($)</label>
+          <input
+            name="coverage"
+            type="number"
+            step="0.01"
+            placeholder="500000"
+            class="mt-1 w-full px-4 py-2 rounded-xl border
+                   focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+          />
+        </div>
+      </div>
+
+      <!-- Start Date -->
+      <div>
+        <label class="text-sm font-medium">Start Date</label>
+        <input
+          name="startDate"
+          type="date"
+          class="mt-1 w-full px-4 py-2 rounded-xl border
+                 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+        />
+      </div>
+
+    <!-- Footer -->
+    <div class="flex justify-end gap-3 mt-6">
+      <button
+        type="button"
+        onclick="closeCreatePolicy()"
+        class="px-4 py-2 rounded-xl border hover:bg-slate-50"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        class="px-4 py-2 rounded-xl bg-blue-600 text-white
+               hover:bg-blue-700 hover:shadow-md"
+      >
+        Create Policy
+      </button>
+    </div>
+    </form>
+
+  </div>
+</div>
+
+<script>
+  lucide.createIcons();
+
+  function go(url) { window.location.href = url; }
+function logout(){ location.href='/logout' }
+  
+  function openEdit(id) { window.location.href = '/admin/policies/' + id + '/edit'; }
+  function openView(id) { window.location.href = '/admin/policies/' + id; }
+  function openDelete(id) { if (confirm('Delete this policy?')) { fetch('/admin/policies/delete/' + id, { method: 'POST' }).then(r => { if (r.ok) location.reload(); else alert('Failed to delete'); }).catch(e => alert('Network error: ' + e.message)); } }
+  function openCreatePolicy() {
+    document.getElementById("createPolicyModal").classList.remove("hidden");
+    document.getElementById("createPolicyModal").classList.add("flex");
+  }
+
+  function closeCreatePolicy() {
+    document.getElementById("createPolicyModal").classList.add("hidden");
+    document.getElementById("createPolicyModal").classList.remove("flex");
+  }
+
+  function submitPolicy() {
+    alert("Create Policy clicked (connect backend here)");
+    closeCreatePolicy();
+  }
+
+  // Close on outside click
+  document.getElementById("createPolicyModal").addEventListener("click", e => {
+    if (e.target.id === "createPolicyModal") closeCreatePolicy();
+  });
+</script>
+
+</body>
+</html>
