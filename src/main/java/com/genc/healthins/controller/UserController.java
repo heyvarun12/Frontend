@@ -7,6 +7,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -177,17 +179,83 @@ public class UserController {
         return "user/profile";
     }
 
-    @GetMapping({"/user/submit-claim", "/user/submit-claim.html"})
-    public String submitClaimForm(Model model, jakarta.servlet.http.HttpServletRequest request) {
-        User user = (User) request.getSession().getAttribute("loggedInUser");
-        model.addAttribute("policies", user != null ? policyService.findByUser(user) : java.util.Collections.emptyList());
-        return "user/submit-claim";
-    }
+@GetMapping({"/user/submit-claim", "/user/submit-claim.html"})
+public String submitClaimForm(Model model, jakarta.servlet.http.HttpServletRequest request) {
+    User user = (User) request.getSession().getAttribute("loggedInUser");
+    model.addAttribute("policies", user != null ? policyService.findByUser(user) : java.util.Collections.emptyList());
+    return "user/submit-claim";
+}
 
+// Method 2: Process the data and SAVE it to DB
+@PostMapping("/user/claims/submit")
+public String submitClaim(@org.springframework.web.bind.annotation.RequestParam Long policyId,
+                          @org.springframework.web.bind.annotation.RequestParam java.math.BigDecimal amount,
+                          org.springframework.web.servlet.mvc.support.RedirectAttributes ra) {
+    var opt = policyService.findById(policyId);
+    if (opt.isPresent()) {
+        com.genc.healthins.model.Claim c = new com.genc.healthins.model.Claim();
+        c.setPolicy(opt.get());
+        c.setClaimAmount(amount); // Setting the requested amount from the user
+        c.setClaimDate(java.time.LocalDateTime.now());
+        c.setClaimStatus("PENDING"); // New claims start as PENDING for Admin review
+        
+        claimService.save(c); // This line sends it to MySQL
+        ra.addFlashAttribute("success", "Claim submitted for approval!");
+    }
+    return "redirect:/user/claims";
+}
     @GetMapping({"/user/create-ticket", "/user/create-ticket.html"})
     public String createTicketForm(Model model, jakarta.servlet.http.HttpServletRequest request) {
         User user = (User) request.getSession().getAttribute("loggedInUser");
         model.addAttribute("user", user);
         return "user/create-ticket";
     }
+@GetMapping({"/user/marketplace", "/user/marketplace.html"})
+public String marketplace(Model model) {
+    // Only show policies that haven't been bought yet (user_id is null)
+    List<Policy> availablePlans = policyService.findAll().stream()
+            .filter(p -> p.getUser() == null)
+            .toList();
+    model.addAttribute("plans", availablePlans);
+    return "user/marketplace";
+}
+@PostMapping("/user/policies/enroll")
+public String enrollInPolicy(@RequestParam("planId") Long planId, 
+                             jakarta.servlet.http.HttpServletRequest request, 
+                             RedirectAttributes ra) {
+    User user = (User) request.getSession().getAttribute("loggedInUser");
+    if (user == null) return "redirect:/login";
+
+    var opt = policyService.findById(planId);
+    if (opt.isPresent()) {
+        com.genc.healthins.model.Policy plan = opt.get();
+        
+        // Associate the user with this policy
+        plan.setUser(user); 
+        plan.setPolicyStatus("Active");
+        
+        policyService.save(plan); // Persist change to MySQL
+        ra.addFlashAttribute("success", "Successfully enrolled in " + plan.getCoverageType() + "!");
+    }
+    return "redirect:/user/policies";
+}
+@PostMapping("/user/policies/join")
+public String joinPolicy(@RequestParam Long id, 
+                         jakarta.servlet.http.HttpServletRequest request, 
+                         RedirectAttributes ra) {
+    User user = (User) request.getSession().getAttribute("loggedInUser");
+    var opt = policyService.findById(id);
+    
+    if (opt.isPresent() && user != null) {
+        Policy planTemplate = opt.get();
+        
+        // Logic: When a user joins, we assign their ID to the policy row
+        planTemplate.setUser(user); 
+        planTemplate.setPolicyStatus("Active");
+        policyService.save(planTemplate); 
+        
+        ra.addFlashAttribute("success", "Successfully enrolled in " + planTemplate.getCoverageType());
+    }
+    return "redirect:/user/policies";
+}
 }

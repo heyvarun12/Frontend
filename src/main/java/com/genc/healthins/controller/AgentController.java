@@ -122,12 +122,6 @@ public class AgentController {
         return "agent/claims";
     }
 
-    @GetMapping({"/agent/support", "/agent/support.html"})
-    public String support(Model model) {
-        model.addAttribute("tickets", supportService.findAll());
-        return "agent/support";
-    }
-
     @GetMapping({"/agent/profile", "/agent/profile.html"})
     public String profile(jakarta.servlet.http.HttpServletRequest request, Model model) {
         var session = request.getSession(false);

@@ -99,53 +99,39 @@
   </div>
 
   <!-- STATS -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-
-    <!-- Open -->
-    <div onclick="filterStatus('open')" class="stat-card hover:ring-amber-400">
-      <div class="icon bg-amber-100 text-amber-600">
-        <i data-lucide="clock"></i>
-      </div>
-      <div>
-        <p class="text-sm text-muted">Open</p>
-        <p class="text-2xl font-bold">12</p>
-      </div>
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div onclick="filterStatus('OPEN')" class="stat-card hover:ring-amber-400">
+        <div class="icon bg-amber-100 text-amber-600"><i data-lucide="clock"></i></div>
+        <div>
+            <p class="text-sm text-muted">Open</p>
+            <p class="text-2xl font-bold" th:text="${openCount}">0</p>
+        </div>
     </div>
 
-    <!-- In Progress -->
     <div onclick="filterStatus('progress')" class="stat-card hover:ring-blue-400">
-      <div class="icon bg-blue-100 text-blue-600">
-        <i data-lucide="message-square"></i>
-      </div>
-      <div>
-        <p class="text-sm text-muted">In Progress</p>
-        <p class="text-2xl font-bold">7</p>
-      </div>
+        <div class="icon bg-blue-100 text-blue-600"><i data-lucide="message-square"></i></div>
+        <div>
+            <p class="text-sm text-muted">High Priority</p>
+            <p class="text-2xl font-bold" th:text="${highPriorityCount}">0</p>
+        </div>
     </div>
 
-    <!-- Resolved -->
-    <div onclick="filterStatus('resolved')" class="stat-card hover:ring-emerald-400">
-      <div class="icon bg-emerald-100 text-emerald-600">
-        <i data-lucide="check-circle"></i>
-      </div>
-      <div>
-        <p class="text-sm text-muted">Resolved</p>
-        <p class="text-2xl font-bold">21</p>
-      </div>
+    <div onclick="filterStatus('RESOLVED')" class="stat-card hover:ring-emerald-400">
+        <div class="icon bg-emerald-100 text-emerald-600"><i data-lucide="check-circle"></i></div>
+        <div>
+            <p class="text-sm text-muted">Resolved</p>
+            <p class="text-2xl font-bold" th:text="${resolvedCount}">0</p>
+        </div>
     </div>
 
-    <!-- Total -->
     <div onclick="filterStatus('all')" class="stat-card hover:ring-purple-400">
-      <div class="icon bg-purple-100 text-purple-600">
-        <i data-lucide="layers"></i>
-      </div>
-      <div>
-        <p class="text-sm text-muted">Total</p>
-        <p class="text-2xl font-bold">40</p>
-      </div>
+        <div class="icon bg-purple-100 text-purple-600"><i data-lucide="layers"></i></div>
+        <div>
+            <p class="text-sm text-muted">Total</p>
+            <p class="text-2xl font-bold" th:text="${#lists.size(tickets)}">0</p>
+        </div>
     </div>
-
-  </div>
+</div>
 
   <!-- SEARCH -->
   <div class="relative mb-6">
@@ -158,76 +144,96 @@
   </div>
 
   <!-- TICKET CARD -->
-  <div class="bg-card rounded-xl border p-4 transition-shadow hover:shadow-md">
-    <div class="flex justify-between items-center">
-      <div>
-        <p class="text-xs text-muted font-mono mb-1">TCK-1023</p>
-        <h3 class="font-semibold">Unable to access policy details</h3>
-        <p class="text-sm text-muted">John Doe • Sep 18, 2025</p>
-      </div>
-      <button onclick="openTicket()" class="px-3 py-2 border rounded-xl hover:bg-slate-50">
-        View Ticket
-      </button>
+<div id="ticket-container" class="space-y-4">
+    <div th:each="t : ${tickets}" 
+         class="bg-card rounded-xl border p-4 transition-shadow hover:shadow-md ticket-item"
+         th:data-status="${t.ticketStatus}"
+         th:data-search="${t.subject.toLowerCase() + ' ' + t.user.username.toLowerCase()}">
+        <div class="flex justify-between items-center">
+            <div>
+                <p class="text-xs text-muted font-mono mb-1" th:text="${'TCK-' + t.id}">TCK-1000</p>
+                <h3 class="font-semibold" th:text="${t.subject}">Issue Subject</h3>
+                <p class="text-sm text-muted">
+                    <span th:text="${t.user.username}">User</span> • 
+                    <span th:text="${#temporals.format(t.createdDate, 'MMM dd, yyyy')}">Date</span>
+                </p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider"
+                      th:classappend="${t.ticketStatus == 'OPEN' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}"
+                      th:text="${t.ticketStatus}">STATUS</span>
+                <button th:onclick="openTicket([[${t.id}]], [[${t.user.username}]], [[${t.user.email}]], [[${t.issueDescription}]])" 
+                        class="px-3 py-2 border rounded-xl hover:bg-slate-50">
+                    View Ticket
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
+</div>
 
 </main>
 
 <!-- VIEW TICKET MODAL -->
 <div id="ticketModal" class="fixed inset-0 hidden items-center justify-center bg-black/50 z-50">
-  <div class="bg-white max-w-lg w-full rounded-2xl p-6 relative">
-    <button onclick="closeTicket()" class="absolute top-4 right-4 text-gray-400">
-      <i data-lucide="x"></i>
-    </button>
-
-    <h2 class="text-lg font-semibold mb-4">Ticket #TCK-1023</h2>
-
-    <div class="space-y-3">
-      <p><strong>User:</strong> John Doe</p>
-      <p><strong>Email:</strong> john@example.com</p>
-
-      <div class="bg-slate-100 p-3 rounded-lg text-sm">
-        I am unable to view my policy details from dashboard.
-      </div>
-
-      <textarea
-        rows="3"
-        placeholder="Type your reply..."
-        class="w-full px-4 py-2 border rounded-xl"
-      ></textarea>
-
-      <div class="flex gap-2">
-        <button class="flex-1 bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700">
-          Send Reply
-        </button>
-        <button class="flex-1 border py-2 rounded-xl">
-          Mark Resolved
-        </button>
-      </div>
+    <div class="bg-white max-w-lg w-full rounded-2xl p-6 relative">
+        <h2 id="modal-title" class="text-lg font-semibold mb-4 text-slate-800">Ticket Details</h2>
+        <div class="space-y-4">
+            <div class="flex justify-between border-b pb-2 text-sm">
+                <p><strong>User:</strong> <span id="modal-name"></span></p>
+                <p><strong>Email:</strong> <span id="modal-email"></span></p>
+            </div>
+            <div id="modal-message" class="bg-slate-50 p-4 rounded-xl text-sm italic text-slate-600"></div>
+            
+            <form th:action="@{/agent/support/response}" method="POST">
+                <input type="hidden" name="ticketId" id="hidden-ticket-id">
+                <textarea name="message" rows="3" placeholder="Type your reply..." class="w-full px-4 py-3 border rounded-xl mb-3 outline-none focus:ring-2 focus:ring-blue-500/20" required></textarea>
+                <div class="flex gap-2">
+                    <button type="submit" class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors">Send Reply</button>
+            </form>
+            <form id="resolve-form" method="POST" class="flex-1">
+                <button type="submit" class="w-full border py-3 rounded-xl font-bold hover:bg-slate-50 transition-colors">Mark Resolved</button>
+            </form>
+        </div>
     </div>
-  </div>
 </div>
 
 <script>
   lucide.createIcons();
 
-  function go(url) {
-    window.location.href = url;
-  }
-function logout(){ location.href='/logout' }
-  function openTicket() {
-    document.getElementById("ticketModal").classList.remove("hidden");
-    document.getElementById("ticketModal").classList.add("flex");
-  }
+    function openTicket(id, name, email, message) {
+        // Set content
+        document.getElementById("modal-title").innerText = "Ticket #TCK-" + id;
+        document.getElementById("modal-name").innerText = name;
+        document.getElementById("modal-email").innerText = email;
+        document.getElementById("modal-message").innerText = message;
+        
+        // Prepare hidden inputs for forms
+        document.getElementById("hidden-ticket-id").value = id;
+        document.getElementById("resolve-form").action = "/support/" + id + "/resolve";
 
-  function closeTicket() {
-    document.getElementById("ticketModal").classList.add("hidden");
-    document.getElementById("ticketModal").classList.remove("flex");
-  }
+        // Show modal
+        const modal = document.getElementById("ticketModal");
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+    }
 
-  function filterStatus(status) {
-    console.log("Filter:", status);
-  }
+    function closeTicket() {
+        const modal = document.getElementById("ticketModal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+    }
+
+    // SEARCH FILTERING
+    document.querySelector('input[placeholder="Search tickets..."]').addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase();
+        document.querySelectorAll('.ticket-item').forEach(card => {
+            const searchData = card.getAttribute('data-search');
+            card.style.display = searchData.includes(query) ? 'block' : 'none';
+        });
+    });
+
+    function logout() { location.href = '/logout'; }
+    function go(url) { window.location.href = url; }
 </script>
 
 <style>

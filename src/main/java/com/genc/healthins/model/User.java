@@ -24,6 +24,9 @@ public class User implements Serializable {
     @Column(nullable = false)
     private String username;
 
+    private String phone;
+    private java.time.LocalDateTime joinDate;
+
     public User() {}
 
     public User(String email, String password, String role, String username) {
@@ -47,4 +50,11 @@ public class User implements Serializable {
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
+
+     // Getters and Setters
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public java.time.LocalDateTime getJoinDate() { return joinDate; }
+    public void setJoinDate(java.time.LocalDateTime joinDate) { this.joinDate = joinDate; }
 }

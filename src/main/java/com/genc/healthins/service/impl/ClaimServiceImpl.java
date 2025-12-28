@@ -29,4 +29,7 @@ public class ClaimServiceImpl implements ClaimService {
 
     @Override
     public void deleteById(Long id) { claimRepository.deleteById(id); }
+
+    @Override
+    public List<Claim> findAll() { return claimRepository.findAll(); } 
 }

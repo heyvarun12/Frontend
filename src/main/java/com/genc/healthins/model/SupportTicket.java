@@ -27,7 +27,26 @@ public class SupportTicket {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+    // Inside SupportTicket.java
+    @Column(name = "category")
+    private String category;
 
+    @Column(name = "priority")
+    private String priority;
+
+    // Inside SupportTicket.java
+    @Column(name = "subject")
+    private String subject;
+
+    // Add Getter and Setter
+    public String getSubject() { return subject; }
+    public void setSubject(String subject) { this.subject = subject; }
+    // Getters and Setters
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+
+    public String getPriority() { return priority; }
+    public void setPriority(String priority) { this.priority = priority; }
     // Getters and setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

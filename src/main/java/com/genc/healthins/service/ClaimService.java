@@ -11,4 +11,5 @@ public interface ClaimService {
     Optional<Claim> findById(Long id);
     Claim save(Claim claim);
     void deleteById(Long id);
+    List<Claim> findAll(); 
 }
