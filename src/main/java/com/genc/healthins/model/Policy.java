@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 @Entity
 @Table(name = "policy")
 public class Policy {
@@ -38,11 +41,20 @@ public class Policy {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(name = "created_at")
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "agent_id")
+    private User agent; // The specific agent assigned to this user/policy
+
+    public User getAgent() { return agent; }
+    public void setAgent(User agent) { this.agent = agent; }
 
     // Getters and setters
     public Long getId() { return id; }

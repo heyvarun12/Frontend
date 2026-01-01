@@ -20,7 +20,6 @@
   </style>
 </head>
 <body class="bg-slate-50 text-gray-900">
-
 <aside class="fixed top-0 left-0 w-64 h-full bg-white border-r flex flex-col">
   <div class="p-6 border-b flex items-center gap-3">
     <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
@@ -120,7 +119,7 @@
   <div th:each="ticket : ${tickets}" class="bg-white rounded-2xl border p-6 card-hover">
     <div class="flex justify-between items-start">
       <div>
-        <div class="flex items-center gap-2 mb-2">
+        <div class="flex items-center gap-2 mb-2">x
           <span class="font-mono text-sm text-gray-500" th:text="'TKT-2025-' + ${ticket.id}">TKT-ID</span>
           
           <span th:text="${ticket.ticketStatus}" 

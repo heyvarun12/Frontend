@@ -10,7 +10,7 @@ public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    private Long id;
+    private int id;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -27,6 +27,9 @@ public class User implements Serializable {
     private String phone;
     private java.time.LocalDateTime joinDate;
 
+    @Column(name = "assigned_agent_id")
+    private Integer assignedAgentId;
+
     public User() {}
 
     public User(String email, String password, String role, String username) {
@@ -36,8 +39,8 @@ public class User implements Serializable {
         this.username = username;
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
@@ -57,4 +60,7 @@ public class User implements Serializable {
 
     public java.time.LocalDateTime getJoinDate() { return joinDate; }
     public void setJoinDate(java.time.LocalDateTime joinDate) { this.joinDate = joinDate; }
+
+    public Integer getAssignedAgentId() { return assignedAgentId; }
+    public void setAssignedAgentId(Integer assignedAgentId) { this.assignedAgentId = assignedAgentId; }
 }

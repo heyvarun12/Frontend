@@ -28,6 +28,11 @@ public class PolicyServiceImpl implements PolicyService {
     public List<Policy> findByUser(User user) { return policyRepository.findByUser(user); }
 
     @Override
+    public List<Policy> findPoliciesByAssignedAgent(int agentId) {
+        return policyRepository.findByUser_AssignedAgentId(agentId);
+    }
+
+    @Override
     public Policy save(Policy policy) { return policyRepository.save(policy); }
 
     @Override

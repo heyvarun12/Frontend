@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface PolicyRepository extends JpaRepository<Policy, Long> {
     List<Policy> findByUser(User user);
+    List<Policy> findByUser_AssignedAgentId(Integer agentId);
 }

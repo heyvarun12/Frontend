@@ -1,295 +1,171 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Policy Assistance – HIMS</title>
-  <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
-
-<!-- Tailwind -->
-<script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Lucide Icons -->
-<script src="https://unpkg.com/lucide@latest"></script>
-
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-body {
-  font-family: 'Inter', sans-serif;
-  background: #f8fafc;
-}
-
-.card-hover {
-  transition: all .25s ease;
-}
-.card-hover:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 22px 45px rgba(0,0,0,.15);
-}
-
-.modal-backdrop {
-  background: rgba(0,0,0,.45);
-}
-</style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Policy Assistance – HIMS</title>
+    <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+        .card-hover { transition: all .25s ease; }
+        .card-hover:hover { transform: translateY(-6px); box-shadow: 0 22px 45px rgba(0,0,0,.1); }
+        .modal-backdrop { background: rgba(0,0,0,.45); backdrop-filter: blur(4px); }
+    </style>
 </head>
-
 <body class="text-slate-900">
 
-<!-- ================= SIDEBAR ================= -->
 <aside class="fixed left-0 top-0 h-screen w-64 bg-white border-r border-slate-200 flex flex-col z-40">
-
-  <div class="p-6 border-b">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 flex items-center justify-center">
-        <i data-lucide="shield" class="text-white"></i>
-      </div>
-      <div>
-        <h2 class="font-bold text-lg">HIMS</h2>
-        <p class="text-xs text-slate-400">Agent Portal</p>
-      </div>
+    <div class="p-6 border-b flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-lg">
+            <i data-lucide="shield"></i>
+        </div>
+        <div>
+            <h2 class="font-bold text-lg leading-tight">HIMS</h2>
+            <p class="text-xs text-slate-400">Agent Portal</p>
+        </div>
     </div>
-  </div>
-
-  <nav class="flex-1 p-4 space-y-1 text-sm">
-    <a th:href="@{/agent/dashboard}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100">
-      <i data-lucide="layout-dashboard"></i> Agent Dashboard
-    </a>
-    <a th:href="@{/agent/policies}" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-50 text-emerald-600 font-semibold">
-      <i data-lucide="file-text"></i> Policies
-    </a>
-    <a th:href="@{/agent/claims}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100">
-      <i data-lucide="clipboard-list"></i> Claims
-    </a>
-    <a th:href="@{/agent/customers}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100">
-      <i data-lucide="user"></i> Customers
-    </a>
-    <a th:href="@{/agent/support}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100">
-      <i data-lucide="message-square"></i> Support
-    </a>
-    <a th:href="@{/agent/profile}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100">
-      <i data-lucide="user-circle"></i> Profile
-    </a>
-  </nav>
-
-  <div class="p-4 border-t">
-    <button onclick="go('/logout')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50">
-      <i data-lucide="log-out"></i> Logout
-    </button>
-  </div>
+    <nav class="flex-1 p-4 space-y-1 text-sm font-medium">
+        <a th:href="@{/agent/dashboard}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors">
+            <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Agent Dashboard
+        </a>
+        <a th:href="@{/agent/policies}" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-50 text-emerald-600 font-semibold shadow-sm">
+            <i data-lucide="file-text" class="w-5 h-5"></i> Policies
+        </a>
+        <a th:href="@{/agent/claims}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50">
+            <i data-lucide="clipboard-list" class="w-5 h-5"></i> Claims
+        </a>
+        <a th:href="@{/agent/customers}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50">
+            <i data-lucide="user" class="w-5 h-5"></i> Customers
+        </a>
+        <a th:href="@{/agent/support}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50">
+            <i data-lucide="message-square" class="w-5 h-5"></i> Support
+        </a>
+        <a th:href="@{/agent/profile}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50">
+            <i data-lucide="user-circle" class="w-5 h-5"></i> Profile
+        </a>
+    </nav>
+    <div class="p-4 border-t">
+        <button onclick="window.location.href='/logout'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-all font-semibold">
+            <i data-lucide="log-out" class="w-5 h-5"></i> Logout
+        </button>
+    </div>
 </aside>
 
-<!-- ================= MAIN ================= -->
-<main class="ml-64 p-8">
+<main class="ml-64 p-10">
+    <div th:if="${success}" class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-700 flex items-center gap-3 animate-pulse">
+        <i data-lucide="check-circle" class="w-5 h-5"></i>
+        <span class="font-medium" th:text="${success}"></span>
+    </div>
 
-<h1 class="text-3xl font-bold mb-1">Policy Assistance</h1>
-<p class="text-slate-500 mb-6">View and assist customers with their policies</p>
+    <div class="mb-10">
+        <h1 class="text-3xl font-bold text-slate-900">Assisted Customer Policies</h1>
+        <p class="text-slate-500 font-medium">Managing users assigned to your direct guidance</p>
+    </div>
 
-<!-- INFO BANNER -->
-<div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex gap-3">
-  <i data-lucide="info" class="text-blue-600"></i>
-  <div>
-    <p class="font-semibold text-blue-800">Agent Role: View & Assist Only</p>
-    <p class="text-sm text-blue-600">
-      You can view policy details and assist customers with renewals, coverage explanations,
-      and premium queries. Policy creation and modifications are handled by administrators.
-    </p>
-  </div>
-</div>
+    <div class="grid grid-cols-3 gap-6 mb-10 text-center">
+        <div class="bg-white border rounded-[24px] p-6 shadow-sm card-hover border-emerald-100">
+            <p class="text-3xl font-bold text-emerald-600" th:text="${activeCount}">0</p>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Active Customers</p>
+        </div>
+        <div class="bg-white border rounded-[24px] p-6 shadow-sm card-hover border-amber-100">
+            <p class="text-3xl font-bold text-amber-600" th:text="${inactiveCount != null ? inactiveCount : 0}">0</p>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Pending Actions</p>
+        </div>
+        <div class="bg-white border rounded-[24px] p-6 shadow-sm card-hover border-rose-100">
+            <p class="text-3xl font-bold text-rose-600" th:text="${expiredCount}">0</p>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Expired/Due</p>
+        </div>
+    </div>
 
-<!-- STATS -->
-<div class="grid grid-cols-3 gap-4 mb-6 text-center">
-  <div class="bg-white border rounded-xl p-4 card-hover">
-    <p class="text-2xl font-bold text-emerald-600">3</p>
-    <p class="text-sm text-slate-500">Active</p>
-  </div>
-  <div class="bg-white border rounded-xl p-4 card-hover">
-    <p class="text-2xl font-bold text-amber-600">1</p>
-    <p class="text-sm text-slate-500">Inactive</p>
-  </div>
-  <div class="bg-white border rounded-xl p-4 card-hover">
-    <p class="text-2xl font-bold text-red-600">1</p>
-    <p class="text-sm text-slate-500">Expired</p>
-  </div>
-</div>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        <div th:each="p : ${policies}" class="bg-white rounded-[32px] overflow-hidden border border-slate-200 shadow-sm card-hover flex flex-col">
+            <div th:classappend="${p.policyStatus == 'ACTIVE' ? 'from-emerald-500 to-teal-600' : 'from-rose-500 to-rose-600'}" 
+                 class="bg-gradient-to-r p-8 text-white rounded-t-[32px]">
+                <div class="flex justify-between items-center mb-4">
+                    <i data-lucide="shield" class="w-6 h-6"></i>
+                    <span class="bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest" th:text="${p.policyStatus}">Status</span>
+                </div>
+                <h3 class="font-bold text-xl leading-tight" th:text="${p.user.username}">Customer Name</h3>
+                <p class="text-white/80 text-sm mt-1" th:text="${p.coverageType}">Policy Type</p>
+            </div>
 
-<!-- FILTERS -->
-<div class="flex gap-4 mb-6">
-  <input class="border rounded-lg px-4 py-2 w-96"
-         placeholder="Search by Policy ID, Name, or Customer...">
-  <select id="statusFilter"
-        onchange="renderPolicies()"
-        class="border rounded-lg px-4 py-2">
-  <option value="all">All Policies</option>
-  <option value="active">Active</option>
-  <option value="inactive">Inactive</option>
-  <option value="expired">Expired</option>
-</select>
+            <div class="p-8 space-y-4 text-sm flex-1">
+                <div class="flex justify-between text-slate-400 font-medium"><span>Policy No.</span><span class="font-mono text-slate-900 font-bold" th:text="${p.policyNumber}">POL-000</span></div>
+                <div class="flex justify-between text-slate-400 font-medium"><span>Premium</span><span class="font-bold text-slate-900" th:text="${'$' + #numbers.formatDecimal(p.premiumAmount, 1, 'COMMA', 2, 'POINT') + '/mo'}">$0</span></div>
+                <div class="flex justify-between text-slate-400 font-medium"><span>Next Renewal</span><span class="font-semibold text-slate-700" th:text="${#temporals.format(p.endDate, 'MMM dd, yyyy')}">Date</span></div>
 
-</div>
-
-<!-- ================= POLICIES GRID ================= -->
-<div id="policiesGrid"
-     class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-</div>
-
+                <div class="flex gap-3 pt-4 border-t border-slate-100">
+                    <button th:onclick="'sendReminder(' + ${p.id} + ', \'Premium\')'"
+                            class="flex-1 border border-slate-200 rounded-2xl py-3.5 text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="bell" class="w-3 h-3"></i> Reminder
+                    </button>
+                    <button th:onclick="openAssistanceModal([[${p.id}]], [[${p.policyNumber}]], [[${p.user.username}]], [[${p.coverageType}]], [[${p.coverageAmount}]], [[${p.premiumAmount}]])" 
+                            class="flex-1 bg-slate-900 text-white rounded-2xl py-3.5 text-[11px] font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="eye" class="w-3 h-3"></i> Manage
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 
-<!-- ================= MODAL ================= -->
-<div id="policyModal" class="fixed inset-0 hidden items-center justify-center modal-backdrop z-50">
-  <div class="bg-white rounded-2xl w-full max-w-lg p-6 relative shadow-soft">
-    <button onclick="closeModal()" class="absolute right-4 top-4">
-      <i data-lucide="x"></i>
-    </button>
+<div id="policyModal" class="fixed inset-0 hidden items-center justify-center modal-backdrop z-50 p-4">
+    <div class="bg-white rounded-[40px] w-full max-w-xl p-10 relative shadow-2xl">
+        <button onclick="closeModal()" class="absolute right-8 top-8 text-slate-400 hover:text-slate-900 transition-colors"><i data-lucide="x"></i></button>
 
-    <h2 class="text-xl font-bold mb-4">Policy Details</h2>
-    <p class="font-mono mb-4">POL-001</p>
+        <h2 class="text-2xl font-bold text-slate-900 mb-1">Policy Assistance</h2>
+        <p class="font-mono text-blue-600 font-bold text-sm mb-10" id="m-pnum">POL-000</p>
 
-    <div class="grid grid-cols-2 gap-4 text-sm">
-      <div><p class="text-slate-400">Policy Name</p><p class="font-semibold">Health Plus Premium</p></div>
-      <div><p class="text-slate-400">Policy Holder</p><p class="font-semibold">John Doe</p></div>
-      <div><p class="text-slate-400">Coverage Amount</p><p class="font-bold">$500,000.00</p></div>
-      <div><p class="text-slate-400">Monthly Premium</p><p class="font-bold">$450.00</p></div>
-      <div><p class="text-slate-400">Start Date</p><p>2024-01-01</p></div>
-      <div><p class="text-slate-400">End Date</p><p>2024-12-31</p></div>
+        <div class="grid grid-cols-2 gap-x-8 gap-y-8 text-sm mb-10">
+            <div><p class="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-2">Policy Plan</p><p class="font-bold text-slate-900 text-base" id="m-name">-</p></div>
+            <div><p class="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-2">Assigned Customer</p><p class="font-bold text-slate-900 text-base" id="m-holder">-</p></div>
+            <div><p class="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-2">Total Coverage</p><p class="font-black text-slate-900 text-base" id="m-cov">$0</p></div>
+            <div><p class="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-2">Monthly Due</p><p class="font-black text-slate-900 text-base" id="m-pre">$0</p></div>
+        </div>
+
+        <form th:action="@{/agent/policies/assist}" method="post" class="space-y-6">
+            <input type="hidden" name="policyId" id="m-id" />
+            <p class="font-bold text-slate-900 text-sm border-b pb-2">Consultation Actions</p>
+            <div class="flex gap-4">
+                <button type="button" class="flex-1 border border-slate-200 rounded-2xl py-4 font-bold hover:bg-slate-50 text-sm">Review Claims</button>
+                <button type="button" class="flex-1 border border-slate-200 rounded-2xl py-4 font-bold hover:bg-slate-50 text-sm">Call Customer</button>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white py-5 rounded-[24px] font-bold hover:bg-blue-700 shadow-xl transition-all active:scale-95">
+                Process Renewal Assistance
+            </button>
+        </form>
     </div>
-
-    <div class="mt-4 pt-4 border-t">
-      <p class="text-slate-400">Renewal Status</p>
-      <p class="text-amber-600 font-semibold">Due in 30 days</p>
-    </div>
-
-    <div class="mt-4 pt-4 border-t">
-      <p class="font-semibold mb-3">Customer Assistance Actions</p>
-      <div class="flex gap-2 mb-3">
-        <button class="flex-1 border rounded-xl py-2">Explain Coverage</button>
-        <button class="flex-1 border rounded-xl py-2">Contact Customer</button>
-      </div>
-      <button class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-xl font-semibold">
-        Assist with Renewal
-      </button>
-    </div>
-  </div>
 </div>
 
 <script>
-function openModal(){
-  policyModal.classList.remove("hidden");
-  policyModal.classList.add("flex");
-}
-function closeModal(){
-  policyModal.classList.add("hidden");
-}
-lucide.createIcons();
-const policies = [
-  {
-    id: "POL-001",
-    name: "Health Plus Premium",
-    holder: "John Doe",
-    status: "active",
-    coverage: "$500,000.00",
-    premium: "$450.00/mo",
-    valid: "2024-12-31",
-    renewal: "Due in 30 days",
-    renewalColor: "text-amber-600"
-  },
-  {
-    id: "POL-002",
-    name: "Dental Care Basic",
-    holder: "Jane Smith",
-    status: "active",
-    coverage: "$25,000.00",
-    premium: "$75.00/mo",
-    valid: "2025-03-14",
-    renewal: "Active",
-    renewalColor: "text-emerald-600"
-  },
-  {
-    id: "POL-003",
-    name: "Vision Care",
-    holder: "Mike Johnson",
-    status: "inactive",
-    coverage: "$10,000.00",
-    premium: "$35.00/mo",
-    valid: "2025-05-31",
-    renewal: "Pending activation",
-    renewalColor: "text-emerald-600"
-  },
-  {
-    id: "POL-004",
-    name: "Family Health Plan",
-    holder: "Sarah Wilson",
-    status: "expired",
-    coverage: "$750,000.00",
-    premium: "$650.00/mo",
-    valid: "2023-12-31",
-    renewal: "Expired - Renewal required",
-    renewalColor: "text-red-600"
-  },
-  {
-    id: "POL-005",
-    name: "Critical Illness Cover",
-    holder: "Robert Brown",
-    status: "active",
-    coverage: "$300,000.00",
-    premium: "$200.00/mo",
-    valid: "2025-01-31",
-    renewal: "Active",
-    renewalColor: "text-emerald-600"
-  }
-];
+    lucide.createIcons();
 
-function renderPolicies() {
-  const filter = document.getElementById("statusFilter").value;
-  const grid = document.getElementById("policiesGrid");
-  grid.innerHTML = "";
+    function openAssistanceModal(id, pnum, name, holder, cov, pre) {
+        document.getElementById('m-id').value = id;
+        document.getElementById('m-pnum').innerText = pnum;
+        document.getElementById('m-name').innerText = holder;
+        document.getElementById('m-holder').innerText = name;
+        document.getElementById('m-cov').innerText = '$' + Number(cov).toLocaleString();
+        document.getElementById('m-pre').innerText = '$' + Number(pre).toLocaleString();
+        document.getElementById('policyModal').classList.replace('hidden', 'flex');
+        document.body.style.overflow = 'hidden';
+    }
 
-  policies
-    .filter(p => filter === "all" || p.status === filter)
-    .forEach(p => {
-      grid.innerHTML += `
-      <div class="bg-white rounded-3xl overflow-hidden border shadow-soft card-hover">
-        <div class="bg-gradient-to-r from-emerald-500 to-teal-600 p-6 text-white">
-          <div class="flex justify-between mb-2">
-            <i data-lucide="shield"></i>
-            <span class="bg-white/25 px-3 py-1 rounded-full text-xs capitalize">
-              ${p.status}
-            </span>
-          </div>
-          <h3 class="font-bold text-lg">${p.name}</h3>
-          <p class="text-sm opacity-90">${p.holder}</p>
-        </div>
+    function closeModal() {
+        document.getElementById('policyModal').classList.replace('flex', 'hidden');
+        document.body.style.overflow = 'auto';
+    }
 
-        <div class="p-6 space-y-2 text-sm">
-          <div class="flex justify-between"><span>Policy Number</span><span class="font-mono">${p.id}</span></div>
-          <div class="flex justify-between"><span>Coverage</span><span class="font-bold">${p.coverage}</span></div>
-          <div class="flex justify-between"><span>Premium</span><span class="font-bold">${p.premium}</span></div>
-          <div class="flex justify-between"><span>Valid Until</span><span>${p.valid}</span></div>
-
-          <div class="pt-2 border-t font-medium ${p.renewalColor}">
-            ${p.renewal}
-          </div>
-
-          <div class="flex gap-2 pt-3">
-            <button onclick="openModal()"
-              class="flex-1 border rounded-xl py-2 flex items-center justify-center gap-2">
-              <i data-lucide="eye"></i> View
-            </button>
-            <button
-              class="flex-1 border rounded-xl py-2 flex items-center justify-center gap-2">
-              <i data-lucide="user"></i> Contact
-            </button>
-          </div>
-        </div>
-      </div>`;
-    });
-
-  lucide.createIcons();
-}
-
-// initial load
-renderPolicies();
+    function sendReminder(id, type) {
+        fetch(`/agent/send-reminder?policyId=${id}&type=${type}`, {method: 'POST'})
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+        });
+    }
 </script>
-
 </body>
 </html>

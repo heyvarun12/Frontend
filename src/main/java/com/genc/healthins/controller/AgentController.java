@@ -1,17 +1,16 @@
 package com.genc.healthins.controller;
 
-import com.genc.healthins.model.Claim;
-import com.genc.healthins.model.Policy;
-import com.genc.healthins.model.SupportTicket;
-import com.genc.healthins.model.User;
-import com.genc.healthins.service.ClaimService;
-import com.genc.healthins.service.PolicyService;
-import com.genc.healthins.service.SupportService;
+import com.genc.healthins.model.*;
+import com.genc.healthins.service.*;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,34 +20,47 @@ public class AgentController {
     private final PolicyService policyService;
     private final SupportService supportService;
     private final ClaimService claimService;
-    private final com.genc.healthins.service.UserService userService;
+    private final NotificationService notificationService;
+    private final UserService userService;
 
-    public AgentController(PolicyService policyService, SupportService supportService, ClaimService claimService, com.genc.healthins.service.UserService userService) {
+    public AgentController(PolicyService policyService, 
+                           SupportService supportService, 
+                           ClaimService claimService, 
+                           NotificationService notificationService, 
+                           UserService userService) {
         this.policyService = policyService;
         this.supportService = supportService;
         this.claimService = claimService;
+        this.notificationService = notificationService;
         this.userService = userService;
     }
 
+    /**
+     * 1. AGENT DASHBOARD
+     * Strictly shows stats related to policies of customers assigned to this agent.
+     */
     @GetMapping({"/agent/dashboard", "/agent/dashboard.html"})
-    public String dashboard(Model model) {
-        List<Policy> policies = policyService.findAll();
+    public String dashboard(Model model, HttpServletRequest request) {
+        User agent = (User) request.getSession().getAttribute("loggedInUser");
+        if (agent == null) return "redirect:/login";
+
+        // Fetch data based on Agent -> Customer -> Policy hierarchy
+        List<Policy> policies = policyService.findPoliciesByAssignedAgent(agent.getId());
         List<SupportTicket> tickets = supportService.findAll();
 
-        // Customers count (unique users)
+        // Count unique customers assigned to this agent
         Set<User> customers = policies.stream()
                 .map(Policy::getUser)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        // Claims counts and lists
         List<Claim> pendingClaims = new ArrayList<>();
         int approvedToday = 0;
         int rejectedToday = 0;
         LocalDate today = LocalDate.now();
 
         for (Policy p : policies) {
-            var claims = claimService.findByPolicy(p);
+            List<Claim> claims = claimService.findByPolicy(p);
             for (Claim c : claims) {
                 String status = c.getClaimStatus();
                 if ("PENDING".equalsIgnoreCase(status)) pendingClaims.add(c);
@@ -68,53 +80,81 @@ public class AgentController {
         return "agent/dashboard";
     }
 
-    // API endpoint to process (approve/reject) a claim
-    @org.springframework.web.bind.annotation.PostMapping("/agent/claims/{id}/action")
-    @org.springframework.web.bind.annotation.ResponseBody
-    public org.springframework.http.ResponseEntity<?> processClaim(@org.springframework.web.bind.annotation.PathVariable Long id,
-                                                                   @org.springframework.web.bind.annotation.RequestParam String action) {
-        var opt = claimService.findById(id);
-        if (opt.isEmpty()) return org.springframework.http.ResponseEntity.status(404).body(java.util.Map.of("error", "Claim not found"));
-        var claim = opt.get();
-        var now = java.time.LocalDateTime.now();
-        if ("approve".equalsIgnoreCase(action)) {
-            claim.setClaimStatus("APPROVED");
-            claim.setClaimDate(now);
-            claimService.save(claim);
-            return org.springframework.http.ResponseEntity.ok(java.util.Map.of("status","approved"));
-        } else if ("reject".equalsIgnoreCase(action)) {
-            claim.setClaimStatus("REJECTED");
-            claim.setClaimDate(now);
-            claimService.save(claim);
-            return org.springframework.http.ResponseEntity.ok(java.util.Map.of("status","rejected"));
+    /**
+     * 2. POLICY ASSISTANCE (Consolidated)
+     * Shows all policies for customers assigned to this agent.
+     */
+@GetMapping({"/agent/policies", "/agent/policies.html"})
+public String policies(Model model, HttpServletRequest request) {
+    User currentAgent = (User) request.getSession().getAttribute("loggedInUser");
+    if (currentAgent == null) return "redirect:/login";
+
+    // Consistently use agent.getId()
+    List<Policy> assistedPolicies = policyService.findPoliciesByAssignedAgent(currentAgent.getId());
+
+    model.addAttribute("policies", assistedPolicies);
+    model.addAttribute("activeCount", assistedPolicies.stream().filter(p -> "ACTIVE".equalsIgnoreCase(p.getPolicyStatus())).count());
+    model.addAttribute("expiredCount", assistedPolicies.stream().filter(p -> "EXPIRED".equalsIgnoreCase(p.getPolicyStatus())).count());
+    model.addAttribute("inactiveCount", assistedPolicies.stream().filter(p -> "INACTIVE".equalsIgnoreCase(p.getPolicyStatus())).count());
+    
+    return "agent/policies";
+}
+
+    /**
+     * 3. CUSTOMER ASSISTANCE ACTION
+     * Triggers a notification from agent to customer.
+     */
+    @PostMapping("/agent/policies/assist")
+    public String assistCustomer(@RequestParam Long policyId, @RequestParam String actionType, RedirectAttributes ra) {
+        Optional<Policy> opt = policyService.findById(policyId);
+        if (opt.isPresent()) {
+            Policy policy = opt.get();
+            User customer = policy.getUser();
+
+            if (customer != null) {
+                Notification n = new Notification();
+                n.setUser(customer);
+                n.setType(actionType);
+                n.setMessage("Your Agent has initiated " + actionType.toLowerCase() + " assistance for Policy " + policy.getPolicyNumber() + ".");
+                notificationService.save(n); 
+                ra.addFlashAttribute("success", "Assistance alert sent to " + customer.getUsername());
+            }
         }
-        return org.springframework.http.ResponseEntity.badRequest().body(java.util.Map.of("error","Unknown action"));
+        return "redirect:/agent/policies";
     }
 
-    // API endpoint to delete a claim
-    @org.springframework.web.bind.annotation.DeleteMapping("/agent/claims/{id}")
-    @org.springframework.web.bind.annotation.ResponseBody
-    public org.springframework.http.ResponseEntity<?> deleteClaim(@org.springframework.web.bind.annotation.PathVariable Long id) {
-        var opt = claimService.findById(id);
-        if (opt.isEmpty()) return org.springframework.http.ResponseEntity.status(404).body(java.util.Map.of("error","Claim not found"));
-        claimService.deleteById(id);
-        return org.springframework.http.ResponseEntity.ok(java.util.Map.of("status","deleted"));
+    /**
+     * 4. SEND REMINDER (AJAX)
+     */
+    @PostMapping("/agent/policies/send-reminder")
+    @ResponseBody
+    public ResponseEntity<?> sendReminder(@RequestParam Long policyId, @RequestParam String type) {
+        Optional<Policy> opt = policyService.findById(policyId);
+        if (opt.isEmpty()) return ResponseEntity.status(404).build();
+        
+        Policy p = opt.get();
+        String customerName = (p.getUser() != null) ? p.getUser().getUsername() : "Customer";
+        
+        // Log simulation of external service (Email/SMS)
+        System.out.println("Reminder sent to " + customerName + " for policy " + p.getPolicyNumber() + " Type: " + type);
+        
+        return ResponseEntity.ok(Map.of("message", type + " reminder sent successfully!"));
     }
 
-    @GetMapping({"/agent/policies", "/agent/policies.html"})
-    public String policies(Model model) {
-        model.addAttribute("policies", policyService.findAll());
-        return "agent/policies";
-    }
-
+    /**
+     * 5. CLAIMS MANAGEMENT
+     */
     @GetMapping({"/agent/claims", "/agent/claims.html"})
-    public String claims(Model model) {
-        // collect all claims across policies for the agent view
-        List<Policy> policies = policyService.findAll();
+    public String claims(Model model, HttpServletRequest request) {
+        User agent = (User) request.getSession().getAttribute("loggedInUser");
+        if (agent == null) return "redirect:/login";
+
+        List<Policy> policies = policyService.findPoliciesByAssignedAgent(agent.getId());
         List<Claim> allClaims = new ArrayList<>();
         for (Policy p : policies) {
             allClaims.addAll(claimService.findByPolicy(p));
         }
+        
         model.addAttribute("claims", allClaims);
         model.addAttribute("statPending", (int) allClaims.stream().filter(c -> "PENDING".equalsIgnoreCase(c.getClaimStatus())).count());
         model.addAttribute("statApproved", (int) allClaims.stream().filter(c -> "APPROVED".equalsIgnoreCase(c.getClaimStatus())).count());
@@ -122,42 +162,76 @@ public class AgentController {
         return "agent/claims";
     }
 
-    @GetMapping({"/agent/profile", "/agent/profile.html"})
-    public String profile(jakarta.servlet.http.HttpServletRequest request, Model model) {
-        var session = request.getSession(false);
-        var user = session != null ? (com.genc.healthins.model.User) session.getAttribute("loggedInUser") : null;
-        model.addAttribute("agent", user);
-        return "agent/profile";
+    @PostMapping("/agent/claims/{id}/action")
+    @ResponseBody
+    public ResponseEntity<?> processClaim(@PathVariable Long id, @RequestParam String action) {
+        Optional<Claim> opt = claimService.findById(id);
+        if (opt.isEmpty()) return ResponseEntity.status(404).body(Map.of("error", "Claim not found"));
+        
+        Claim claim = opt.get();
+        LocalDateTime now = LocalDateTime.now();
+        
+        if ("approve".equalsIgnoreCase(action)) {
+            claim.setClaimStatus("APPROVED");
+            claim.setClaimDate(now);
+            claimService.save(claim);
+            return ResponseEntity.ok(Map.of("status","approved"));
+        } else if ("reject".equalsIgnoreCase(action)) {
+            claim.setClaimStatus("REJECTED");
+            claim.setClaimDate(now);
+            claimService.save(claim);
+            return ResponseEntity.ok(Map.of("status","rejected"));
+        }
+        return ResponseEntity.badRequest().body(Map.of("error","Unknown action"));
     }
 
+    @DeleteMapping("/agent/claims/{id}")
+    @ResponseBody
+    public ResponseEntity<?> deleteClaim(@PathVariable Long id) {
+        claimService.deleteById(id);
+        return ResponseEntity.ok(Map.of("status","deleted"));
+    }
+
+    /**
+     * 6. CUSTOMER LIST
+     * Strictly shows unique users assigned to this agent.
+     */
     @GetMapping({"/agent/customers", "/agent/customers.html"})
-    public String customers(Model model) {
-        java.util.List<com.genc.healthins.model.User> users = userService.findAll().stream()
-                .filter(u -> "USER".equalsIgnoreCase(u.getRole()))
-                .toList();
+    public String customers(Model model, HttpServletRequest request) {
+        User agent = (User) request.getSession().getAttribute("loggedInUser");
+        if (agent == null) return "redirect:/login";
 
-        long active = users.stream().filter(u -> !policyService.findByUser(u).isEmpty()).count();
-        long pending = users.size() - active;
-        long inactive = 0; // no explicit status field on User yet
+        List<User> assignedUsers = userService.findAll().stream()
+                .filter(u -> "USER".equalsIgnoreCase(u.getRole()) && 
+        u.getAssignedAgentId() != null && 
+        u.getAssignedAgentId().equals(agent.getId()))
+                .collect(Collectors.toList());
 
-        model.addAttribute("customers", users);
-        model.addAttribute("statActive", active);
-        model.addAttribute("statPending", pending);
-        model.addAttribute("statInactive", inactive);
-        model.addAttribute("customersCount", users.size());
+        model.addAttribute("customers", assignedUsers);
+        model.addAttribute("customersCount", assignedUsers.size());
         return "agent/customers";
     }
 
     @GetMapping({"/agent/customers/{id}", "/agent/customers/{id}.html"})
-    public String customerDetails(@org.springframework.web.bind.annotation.PathVariable Long id, Model model, org.springframework.web.servlet.mvc.support.RedirectAttributes ra) {
-        var opt = userService.findById(id);
+    public String customerDetails(@PathVariable Long id, Model model, RedirectAttributes ra) {
+        Optional<User> opt = userService.findById(id);
         if (opt.isEmpty()) {
             ra.addFlashAttribute("error", "Customer not found");
             return "redirect:/agent/customers";
         }
-        var user = opt.get();
+        User user = opt.get();
         model.addAttribute("customer", user);
         model.addAttribute("policies", policyService.findByUser(user));
         return "agent/customer-details";
+    }
+
+    /**
+     * 7. PROFILE
+     */
+    @GetMapping({"/agent/profile", "/agent/profile.html"})
+    public String profile(HttpServletRequest request, Model model) {
+        User user = (User) request.getSession().getAttribute("loggedInUser");
+        model.addAttribute("agent", user);
+        return "agent/profile";
     }
 }

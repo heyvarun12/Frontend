@@ -124,42 +124,62 @@
           <th class="px-6 py-4 text-right text-[11px] font-bold text-slate-400 uppercase tracking-widest">Actions</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-slate-50" id="claimsTableBody">
-        <tr th:each="c : ${claims}" class="hover:bg-slate-50/50 transition-colors claim-row" 
-            th:data-status="${c.claimStatus}">
-          <td class="px-6 py-5">
+     <tbody class="divide-y divide-slate-50" id="claimsTableBody">
+    <tr th:each="c : ${claims}" class="hover:bg-slate-50/50 transition-colors claim-row" 
+        th:data-status="${c.claimStatus}">
+        
+        <td class="px-6 py-5">
             <p class="font-mono text-xs font-bold text-blue-600" th:text="${'CLM-' + c.id}">ID</p>
-            <p class="text-[10px] text-slate-400" th:text="${c.policy.policyNumber}">POLICY</p>
-          </td>
-          <td class="px-6 py-5">
-            <p class="font-semibold text-slate-900" th:text="${c.policy.user != null ? c.policy.user.username : 'Unknown'}">Holder</p>
-          </td>
-          <td class="px-6 py-5">
-            <p class="font-bold text-slate-700" th:text="${'$' + c.claimAmount}">$0.00</p>
-          </td>
-          <td class="px-6 py-5">
+            <p class="text-[10px] text-slate-400">
+                <th:block th:if="${c.policy != null}">
+                    <span th:text="${c.policy.policyNumber}">POLICY</span>
+                </th:block>
+                <th:block th:if="${c.policy == null}">
+                    <span class="text-red-400 italic">Policy Missing</span>
+                </th:block>
+            </p>
+        </td>
+
+        <td class="px-6 py-5">
+            <p class="font-semibold text-slate-900">
+                <span th:if="${c.policy != null and c.policy.user != null}" th:text="${c.policy.user.username}">Holder</span>
+                <span th:unless="${c.policy != null and c.policy.user != null}" class="text-slate-400 italic">No Holder</span>
+            </p>
+        </td>
+
+        <td class="px-6 py-5">
+            <p class="font-bold text-slate-700" th:text="${'$' + (c.claimAmount != null ? c.claimAmount : '0.00')}">$0.00</p>
+        </td>
+
+        <td class="px-6 py-5">
             <span th:classappend="${c.claimStatus == 'PENDING' ? 'bg-amber-100 text-amber-600' : c.claimStatus == 'APPROVED' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}" 
                   class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest" th:text="${c.claimStatus}">STATUS</span>
-          </td>
-          <td class="px-6 py-5 text-sm text-slate-500" th:text="${#temporals.format(c.claimDate, 'MMM dd, yyyy')}">Date</td>
-          <td class="px-6 py-5 text-right">
+        </td>
+
+        <td class="px-6 py-5 text-sm text-slate-500">
+            <span th:text="${c.claimDate != null ? #temporals.format(c.claimDate, 'MMM dd, yyyy') : 'No Date'}">Date</span>
+        </td>
+
+        <td class="px-6 py-5 text-right">
             <div class="flex justify-end gap-2" th:if="${c.claimStatus == 'PENDING'}">
-              <button th:onclick="openProcessModal([[${c.id}]], [[${c.claimAmount}]])" 
-                      class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors" title="Adjust and Approve">
-                <i data-lucide="check-circle" class="w-5 h-5"></i>
-              </button>
-              <form th:action="@{/admin/claims/process}" method="post" onsubmit="return confirm('Reject this claim?')">
-                <input type="hidden" name="claimId" th:value="${c.id}" />
-                <input type="hidden" name="status" value="REJECTED" />
-                <button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Reject">
-                  <i data-lucide="x-circle" class="w-5 h-5"></i>
+                <button th:data-id="${c.id}" 
+                        th:data-amount="${c.claimAmount}"
+                        onclick="openProcessModal(this.getAttribute('data-id'), this.getAttribute('data-amount'))" 
+                        class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors" title="Adjust and Approve">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i>
                 </button>
-              </form>
+                <form th:action="@{/admin/claims/process}" method="post" onsubmit="return confirm('Reject this claim?')">
+                    <input type="hidden" name="claimId" th:value="${c.id}" />
+                    <input type="hidden" name="status" value="REJECTED" />
+                    <button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Reject">
+                        <i data-lucide="x-circle" class="w-5 h-5"></i>
+                    </button>
+                </form>
             </div>
             <span th:if="${c.claimStatus != 'PENDING'}" class="text-xs text-slate-400 italic">Processed</span>
-          </td>
-        </tr>
-      </tbody>
+        </td>
+    </tr>
+</tbody>
     </table>
     <div th:if="${claims == null or claims.size() == 0}" class="py-20 text-center">
       <i data-lucide="clipboard-list" class="w-12 h-12 text-slate-200 mx-auto mb-4"></i>

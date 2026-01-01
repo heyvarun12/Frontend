@@ -129,6 +129,11 @@
           </td>
           <td class="px-6 py-5 text-right">
             <div class="flex justify-end gap-2">
+              <button th:onclick="openAssignModal([[${p.id}]], [[${p.policyNumber}]])" 
+        class="p-2 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-colors" 
+        title="Assign Agent">
+    <i data-lucide="user-plus" class="w-4 h-4"></i>
+</button>
               <a th:href="@{/admin/policies/{id}(id=${p.id})}" 
    class="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors inline-block">
     <i data-lucide="eye" class="w-4 h-4"></i>
@@ -253,7 +258,32 @@
     </form>
   </div>
 </div>
-
+<div id="assignAgentModal" class="fixed inset-0 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm z-50 p-4">
+    <div class="bg-white w-full max-w-md rounded-[40px] p-10 relative shadow-2xl">
+        <button type="button" onclick="closeModals()" class="absolute top-8 right-8 text-slate-300 hover:text-slate-600 z-[60]">
+            <i data-lucide="x"></i>
+        </button>
+        
+        <h2 class="text-2xl font-bold text-slate-900 mb-2">Assign Agent</h2>
+        <p class="text-sm text-slate-500 mb-8" id="assign-policy-display">Policy: POL-000</p>
+        
+        <form th:action="@{/admin/policies/assign-agent}" method="post" class="space-y-6">
+            <input type="hidden" name="policyId" id="assign-policy-id" />
+            
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 ml-1">Select Assistance Agent</label>
+                <select name="agentId" class="w-full p-4 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 transition-all" required>
+                    <option value="" disabled selected>Choose an Agent...</option>
+                    <option th:each="a : ${agents}" th:value="${a.id}" th:text="${a.username}"></option>
+                </select>
+            </div>
+            
+            <button type="submit" class="w-full bg-emerald-600 text-white py-5 rounded-[24px] font-bold hover:bg-emerald-700 shadow-xl shadow-emerald-500/20 transition-all">
+                Confirm Assignment
+            </button>
+        </form>
+    </div>
+</div>
 <script>
   lucide.createIcons();
 
@@ -299,11 +329,19 @@ function openEdit(id, name, premium, coverage, start, end) {
     document.getElementById('editPolicyModal').classList.replace('hidden', 'flex');
     document.body.style.overflow = 'hidden';
 }
-// Ensure closeModals targets all modal IDs
+function openAssignModal(id, num) {
+    document.getElementById('assign-policy-id').value = id;
+    document.getElementById('assign-policy-display').innerText = "Policy: " + num;
+    document.getElementById('assignAgentModal').classList.replace('hidden', 'flex');
+    document.body.style.overflow = 'hidden';
+}
+
+// Update your existing closeModals() to include the new modal
 function closeModals() {
     document.getElementById('createPolicyModal').classList.replace('flex', 'hidden');
     document.getElementById('viewPolicyModal').classList.replace('flex', 'hidden');
     document.getElementById('editPolicyModal').classList.replace('flex', 'hidden');
+    document.getElementById('assignAgentModal').classList.replace('flex', 'hidden'); // Add this line
     document.body.style.overflow = 'auto';
 }
   window.onclick = function(event) {

@@ -107,69 +107,89 @@
   <div class="bg-card rounded-2xl border border-slate-200 shadow-sm">
     <table class="w-full border-collapse">
       <thead>
-        <tr class="text-left border-b border-slate-100 bg-slate-50/50">
-          <th class="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">User</th>
-          <th class="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest hidden md:table-cell">Contact</th>
-          <th class="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
-          <th class="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest hidden lg:table-cell">Join Date</th>
-          <th class="px-6 py-4 text-right text-[11px] font-bold text-slate-400 uppercase tracking-widest">Actions</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-slate-50">
-        <tr th:each="u : ${users}" class="hover:bg-slate-50/50 transition-colors user-row"
-            th:data-search="${u.username.toLowerCase() + ' ' + u.email.toLowerCase() + ' ' + u.role.toLowerCase()}">
-          <td class="px-6 py-5">
+    <tr class="text-left border-b border-slate-100 bg-slate-50/50">
+        <th class="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">User</th>
+        <th class="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest hidden md:table-cell">Contact</th>
+        <th class="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+        <th class="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Assigned Agent</th> <th class="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest hidden lg:table-cell">Join Date</th>
+        <th class="px-6 py-4 text-right text-[11px] font-bold text-slate-400 uppercase tracking-widest">Actions</th>
+    </tr>
+    <tbody class="divide-y divide-slate-50">
+    <tr th:each="u : ${users}" class="hover:bg-slate-50/50 transition-colors user-row"
+        th:data-search="${u.username.toLowerCase() + ' ' + u.email.toLowerCase() + ' ' + u.role.toLowerCase()}">
+        
+        <td class="px-6 py-5">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-white font-bold" 
-                   th:text="${#strings.substring(u.username,0,1).toUpperCase()}">U</div>
-              <div>
-                <p class="font-semibold text-slate-900" th:text="${u.username}">Username</p>
-                <p class="text-xs text-muted md:hidden" th:text="${u.email}">email@example.com</p>
-              </div>
+                <div class="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-white font-bold" 
+                     th:text="${#strings.substring(u.username,0,1).toUpperCase()}">U</div>
+                <div>
+                    <p class="font-semibold text-slate-900" th:text="${u.username}">Username</p>
+                    <p class="text-xs text-muted md:hidden" th:text="${u.email}">email@example.com</p>
+                </div>
             </div>
-          </td>
-          <td class="px-6 py-5 hidden md:table-cell">
+        </td>
+
+        <td class="px-6 py-5 hidden md:table-cell">
             <div class="text-sm space-y-1">
-              <div class="flex gap-2 items-center text-slate-600">
-                <i data-lucide="mail" class="w-3.5 h-3.5 text-slate-400"></i>
-                <span th:text="${u.email}">email@example.com</span>
-              </div>
-              <div class="flex gap-2 items-center text-slate-400">
-                <i data-lucide="phone" class="w-3.5 h-3.5"></i>
-                <span th:text="${u.phone ?: '-'}">-</span>
-              </div>
+                <div class="flex gap-2 items-center text-slate-600">
+                    <i data-lucide="mail" class="w-3.5 h-3.5 text-slate-400"></i>
+                    <span th:text="${u.email}">email@example.com</span>
+                </div>
+                <div class="flex gap-2 items-center text-slate-400">
+                    <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+                    <span th:text="${u.phone ?: '-'}">-</span>
+                </div>
             </div>
-          </td>
-          <td class="px-6 py-5">
+        </td>
+
+        <td class="px-6 py-5">
             <span th:classappend="${u.role == 'USER' ? 'bg-green-100 text-green-700' : u.role == 'AGENT' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}" 
                   class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider" th:text="${u.role}">ROLE</span>
-          </td>
-          <td class="px-6 py-5 hidden lg:table-cell text-sm text-slate-500">
-            <span th:text="${u.joinDate != null ? #temporals.format(u.joinDate, 'MMM dd, yyyy') : 'N/A'}">Join Date</span>
-          </td>
-          <td class="px-6 py-5 text-right relative">
+        </td>
+
+        <td class="px-6 py-5">
+            <form th:if="${u.role == 'USER'}" th:action="@{/admin/users/assign-agent}" method="post" class="flex items-center gap-2">
+                <input type="hidden" name="userId" th:value="${u.id}" />
+                <select name="agentId" onchange="this.form.submit()" 
+                        class="text-[11px] bg-slate-50 border border-slate-200 rounded-lg p-1.5 outline-none focus:ring-2 focus:ring-blue-500/20 font-medium text-slate-600 transition-all cursor-pointer">
+                    <option value="0">Unassigned</option>
+                    <option th:each="agent : ${agents}" 
+                            th:value="${agent.id}" 
+                            th:text="${agent.username}"
+                            th:selected="${u.assignedAgentId == agent.id}">
+                    </option>
+                </select>
+            </form>
+            <span th:if="${u.role != 'USER'}" class="text-slate-300 text-[10px] italic font-medium uppercase">Not Applicable</span>
+        </td>
+
+        <td class="px-6 py-5 hidden lg:table-cell text-sm text-slate-500">
+            <span th:text="${u.joinDate != null ? #temporals.format(u.joinDate, 'MMM dd, yyyy') : 'N/A'}">Date</span>
+        </td>
+
+        <td class="px-6 py-5 text-right relative">
             <button onclick="toggleMenu(this)" class="p-2 rounded-full hover:bg-slate-100 text-slate-400 transition-colors">
-              <i data-lucide="more-horizontal" class="w-5 h-5"></i>
+                <i data-lucide="more-horizontal" class="w-5 h-5"></i>
             </button>
             <div class="hidden absolute right-6 mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2 overflow-hidden">
-              <button th:onclick="openView([[${u.id}]], [[${u.username}]], [[${u.email}]], [[${u.role}]], [[${u.phone}]], [[${u.joinDate != null ? #temporals.format(u.joinDate, 'MMM dd, yyyy') : 'N/A'}]])" 
-                      class="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-slate-50 rounded-xl text-sm font-medium text-slate-700">
-                <i data-lucide="eye" class="w-4 h-4 text-blue-500"></i> View Details
-              </button>
-              <button th:onclick="openEdit([[${u.id}]], [[${u.username}]], [[${u.phone}]], [[${u.role}]])" 
-                      class="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-slate-50 rounded-xl text-sm font-medium text-slate-700">
-                <i data-lucide="edit-3" class="w-4 h-4 text-amber-500"></i> Edit Account
-              </button>
-              <div class="h-px bg-slate-100 my-1"></div>
-              <form th:action="@{/admin/users/delete/{id}(id=${u.id})}" method="post" onsubmit="return confirm('Delete this account permanently?')">
-                <button type="submit" class="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-red-50 rounded-xl text-sm font-medium text-red-600">
-                  <i data-lucide="trash-2" class="w-4 h-4"></i> Delete User
+                <button th:onclick="openView([[${u.id}]], [[${u.username}]], [[${u.email}]], [[${u.role}]], [[${u.phone}]], [[${u.joinDate != null ? #temporals.format(u.joinDate, 'MMM dd, yyyy') : 'N/A'}]])" 
+                        class="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-slate-50 rounded-xl text-sm font-medium text-slate-700">
+                    <i data-lucide="eye" class="w-4 h-4 text-blue-500"></i> View Details
                 </button>
-              </form>
+                <button th:onclick="openEdit([[${u.id}]], [[${u.username}]], [[${u.phone}]], [[${u.role}]])" 
+                        class="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-slate-50 rounded-xl text-sm font-medium text-slate-700">
+                    <i data-lucide="edit-3" class="w-4 h-4 text-amber-500"></i> Edit Account
+                </button>
+                <div class="h-px bg-slate-100 my-1"></div>
+                <form th:action="@{/admin/users/delete/{id}(id=${u.id})}" method="post" onsubmit="return confirm('Delete permanently?')">
+                    <button type="submit" class="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-red-50 rounded-xl text-sm font-medium text-red-600">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i> Delete User
+                    </button>
+                </form>
             </div>
-          </td>
-        </tr>
-      </tbody>
+        </td>
+    </tr>
+</tbody>
     </table>
   </div>
 </main>

@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 public class UserController {
@@ -148,10 +150,10 @@ public class UserController {
         Policy policy = opt.get();
         // ensure user owns this policy
         User user = (User) request.getSession().getAttribute("loggedInUser");
-        if (user == null || policy.getUser() == null || !policy.getUser().getId().equals(user.getId())) {
-            ra.addFlashAttribute("error", "You are not authorized to pay for this policy");
-            return "redirect:/user/payments";
-        }
+        if (user == null || policy.getUser() == null || policy.getUser().getId() != user.getId()) {
+    ra.addFlashAttribute("error", "You are not authorized to pay for this policy");
+    return "redirect:/user/payments";
+}
 
         try {
             com.genc.healthins.model.Payment p = new com.genc.healthins.model.Payment();
@@ -211,34 +213,69 @@ public String submitClaim(@org.springframework.web.bind.annotation.RequestParam 
         return "user/create-ticket";
     }
 @GetMapping({"/user/marketplace", "/user/marketplace.html"})
-public String marketplace(Model model) {
-    // Only show policies that haven't been bought yet (user_id is null)
-    List<Policy> availablePlans = policyService.findAll().stream()
-            .filter(p -> p.getUser() == null)
-            .toList();
-    model.addAttribute("plans", availablePlans);
-    return "user/marketplace";
-}
-@PostMapping("/user/policies/enroll")
-public String enrollInPolicy(@RequestParam("planId") Long planId, 
-                             jakarta.servlet.http.HttpServletRequest request, 
-                             RedirectAttributes ra) {
-    User user = (User) request.getSession().getAttribute("loggedInUser");
-    if (user == null) return "redirect:/login";
+    public String marketplace(Model model, jakarta.servlet.http.HttpServletRequest request) {
+        User user = (User) request.getSession().getAttribute("loggedInUser");
+        
+        // Fetch all Marketplace Templates
+        List<Policy> marketplacePlans = policyService.findAll().stream()
+                .filter(p -> p.getUser() == null)
+                .collect(Collectors.toList());
 
-    var opt = policyService.findById(planId);
-    if (opt.isPresent()) {
-        com.genc.healthins.model.Policy plan = opt.get();
-        
-        // Associate the user with this policy
-        plan.setUser(user); 
-        plan.setPolicyStatus("Active");
-        
-        policyService.save(plan); // Persist change to MySQL
-        ra.addFlashAttribute("success", "Successfully enrolled in " + plan.getCoverageType() + "!");
+        if (user != null) {
+            // Identify policy types the user already owns
+            Set<String> ownedTypes = policyService.findByUser(user).stream()
+                    .map(p -> p.getCoverageType().toLowerCase())
+                    .collect(Collectors.toSet());
+
+            // Filter out plans the user already has
+            marketplacePlans = marketplacePlans.stream()
+                    .filter(p -> !ownedTypes.contains(p.getCoverageType().toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+                
+        model.addAttribute("plans", marketplacePlans);
+        return "user/marketplace";
     }
-    return "redirect:/user/policies";
-}
+@PostMapping("/user/policies/enroll")
+    public String enrollInPolicy(@RequestParam("planId") Long planId, 
+                                 jakarta.servlet.http.HttpServletRequest request, 
+                                 RedirectAttributes ra) {
+        User user = (User) request.getSession().getAttribute("loggedInUser");
+        if (user == null) return "redirect:/login";
+
+        var opt = policyService.findById(planId);
+        if (opt.isPresent()) {
+            Policy template = opt.get();
+            
+            // 1. PREVENT DUPLICATES: Check for existing active policy of this type
+            List<Policy> myPolicies = policyService.findByUser(user);
+            boolean alreadyEnrolled = myPolicies.stream()
+                    .anyMatch(p -> p.getCoverageType().equalsIgnoreCase(template.getCoverageType()) 
+                              && "ACTIVE".equalsIgnoreCase(p.getPolicyStatus()));
+
+            if (alreadyEnrolled) {
+                ra.addFlashAttribute("error", "You are already enrolled in the " + template.getCoverageType() + " plan!");
+                return "redirect:/user/marketplace";
+            }
+
+            // 2. CREATE UNIQUE ENROLLMENT: Separate row for the specific user
+            Policy enrollment = new Policy();
+            enrollment.setCoverageType(template.getCoverageType());
+            enrollment.setCoverageAmount(template.getCoverageAmount());
+            enrollment.setPremiumAmount(template.getPremiumAmount());
+            
+            // Unique policy number with timestamp to avoid duplicates
+            enrollment.setPolicyNumber("POL-" + System.currentTimeMillis());
+            enrollment.setStartDate(java.time.LocalDateTime.now());
+            enrollment.setEndDate(java.time.LocalDateTime.now().plusYears(1));
+            enrollment.setPolicyStatus("ACTIVE");
+            enrollment.setUser(user); 
+            
+            policyService.save(enrollment); 
+            ra.addFlashAttribute("success", "Successfully enrolled in " + template.getCoverageType());
+        }
+        return "redirect:/user/policies";
+    }
 @PostMapping("/user/policies/join")
 public String joinPolicy(@RequestParam Long id, 
                          jakarta.servlet.http.HttpServletRequest request, 

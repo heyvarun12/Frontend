@@ -10,6 +10,7 @@ public interface PolicyService {
     List<Policy> findAll();
     Optional<Policy> findById(Long id);
     List<Policy> findByUser(User user);
+    List<Policy> findPoliciesByAssignedAgent(int agentId);
     Policy save(Policy policy);
     void deleteById(Long id);
 }
